@@ -1,5 +1,6 @@
 package cn.edu.ruc;
 
+import cn.edu.ruc.utils.ResultUtils;
 import cn.edu.ruc.adapter.BaseAdapter;
 import cn.edu.ruc.start.TSBM;
 import okhttp3.*;
@@ -7,7 +8,9 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 
 // get set control + return
 //自动删除无效引用  control+option+o
@@ -64,7 +67,40 @@ public class InfluxdbAdapter implements BaseAdapter {// ctrl+i 快速实现接�
             return -1;
         }
     }
-
+    public ResultUtils execQuery1(String query) {
+        long costTime = 0L;
+        long result = 0L;
+        try {
+            long startTime1 = System.nanoTime();
+            QueryResult results = INFLUXDB.query(new Query(query, dbName));
+            List<List<Object>> rows = results.getResults().get(0).getSeries().get(0).getValues();
+            for (List<Object> row : rows) {
+                // 假设每一行数据都包含时间戳和你感兴趣的字段值
+                // 注意：时间戳可能不在结果中，取决于你的查询是否请求了它
+                Object value = row.get(1); // 字段值通常位于第二列（索引1），如果包含时间戳则位于第三列之后
+                // 尝试将字段值转换为long类型
+                if (value instanceof Number) {
+                    result = ((Number) value).longValue();
+                    // 输出或处理long类型的字段值
+                    System.out.println("Field Value (long): " + value);
+                } else {
+                    // 如果字段值不是Number类型，则进行错误处理或输出警告
+                    System.err.println("Field value is not a number: " + value.getClass().getName());
+                }
+            }
+            long endTime1 = System.nanoTime();
+            costTime = endTime1 - startTime1;
+            if (results.hasError()) {
+                return new ResultUtils(-1, -1);
+            } else {
+                costTime = costTime / 1000 / 1000;
+                return new ResultUtils(result, costTime);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResultUtils(-1, -1);
+        }
+    }
     public long query1(long start, long end) {
         String sql = "select * from sensor where f='%s' and d='%s' and s='%s' and time>=%s and time<=%s";
         String eSql = String.format(sql, "f1", "d2", "s1", TimeUnit.MILLISECONDS.toNanos(start),
@@ -102,6 +138,12 @@ public class InfluxdbAdapter implements BaseAdapter {// ctrl+i 快速实现接�
         String eSql = String.format(sqlFormat, "f1", TimeUnit.MILLISECONDS.toNanos(start),
                 TimeUnit.MILLISECONDS.toNanos(end));
         return execQuery(eSql);
+    }
+    @Override
+    public ResultUtils query6() {
+        String eSql = "select count(*) from sensor";
+        System.out.println(eSql);
+        return execQuery1(eSql);
     }
 
     public void initConnect(String ip, String port, String user, String password) {

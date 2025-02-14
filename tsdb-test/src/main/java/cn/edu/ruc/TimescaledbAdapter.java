@@ -2,6 +2,7 @@ package cn.edu.ruc;
 
 import cn.edu.ruc.adapter.BaseAdapter;
 import cn.edu.ruc.start.TSBM;
+import cn.edu.ruc.utils.ResultUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -171,6 +172,12 @@ public class TimescaledbAdapter implements BaseAdapter {
         String eSql = String.format(sqlFormat, "f1", start / 1000, end / 1000);
         return execQuery(eSql);
     }
+
+    @Override
+    public ResultUtils query6() {
+        return new ResultUtils(0, 0);
+    }
+
 
     public long execQuery(String sql) {
         Connection conn = getConnection();

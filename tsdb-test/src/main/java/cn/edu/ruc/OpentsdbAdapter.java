@@ -4,6 +4,7 @@ package cn.edu.ruc;
 import com.alibaba.fastjson.JSON;
 import cn.edu.ruc.adapter.BaseAdapter;
 import cn.edu.ruc.start.TSBM;
+import cn.edu.ruc.utils.ResultUtils;
 import okhttp3.*;
 
 import java.util.*;
@@ -194,6 +195,12 @@ public class OpentsdbAdapter implements BaseAdapter {
         //System.out.println(json);
         return execQuery(json);
     }
+
+    @Override
+    public ResultUtils query6() {
+        return new ResultUtils(0, 0);
+    }
+
 
     public static void main(String[] args) {
 //		OpentsdbAdapter a=new OpentsdbAdapter();

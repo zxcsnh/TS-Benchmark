@@ -4,7 +4,7 @@
 BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
 echo $BENCHMARK_HOME
 #编译
-#mvn clean package -Dmaven.test.skip=true
+mvn clean package -Dmaven.test.skip=true
 # 参数路径
 PARAM_PATH=${BENCHMARK_HOME}"/"param.properties
 # 启动程序
@@ -29,11 +29,19 @@ DATA_PATH="${BENCHMARK_HOME}"
 rm -rf "${DATA_PATH}"/farm
 rm -rf "${DATA_PATH}"/device
 ##测试数据库选择
-# 1:influxdb ;2:timescaledb ;3:iotdb ;4 opentsdb;5 druid;6 GaussDB(for Influx);7 tdengine;8 AliHiTSDB; 9 AliLindorm; 10 AliInfluxDB
-DB_CODE=5
+# 1:influxdb ;2:timescaledb ;3:iotdb ;4 opentsdb;5 druid;7 TDengine
+DB_CODE=7
 ##测试项选择
-# 0: generate,1:i,w,r ,2 w,r
-TEST_METHOD=0
+# 0: generate; 1: i,w,r; 2: w,r; 3: i; 4 w; 5: r; 6 i,r;
+TEST_METHOD=2
 
-exec "$JAVA" -cp "$CLASSPATH" "$MAIN_CLASS" "$DB_CODE" "${TEST_METHOD}" "${DATA_PATH}"
+###METHOD==6时有效
+##导入数据时的使用的线程数
+THREAD_NUM=1
+##每批次导入的数据量
+##每单位表示50行数据（即2500个数据点）
+##需保证CACHELINE可以被THREAD_NUM整除
+CACHELINE=100
+
+exec "$JAVA" -cp "$CLASSPATH" "$MAIN_CLASS" "$DB_CODE" "${TEST_METHOD}" "${DATA_PATH}" "${THREAD_NUM}" "${CACHELINE}"
 exit $?

@@ -1,255 +1,120 @@
 import cn.edu.ruc.start.TSBM;
 
-import java.io.FileInputStream;
-import java.util.Properties;
-
 public class TSDBTest {
     private static String dataPath = "";
-    public static Properties properties = null;
-
+    private static int thread_num = 1;
+    private static int cacheLine = 400;
     public static void main(String[] args) throws Exception {
-        properties = new Properties();
-        try {
-            FileInputStream in = new FileInputStream("dbInfoConfig.properties");
-            properties.load(in);
-        } catch (Exception e) {
-            System.out.println(e.toString());
-        }
-
-        System.out.println(args[0]);
-        System.out.println(args[1]);
-        System.out.println(args[2]);
+        System.out.println("datapath: "+args[2]);
+        System.out.println("adapter: "+args[0]);
+        System.out.println("method: "+args[1]);
+        System.out.println("thread_num: "+args[3]);
+        System.out.println("cacheLine: "+args[4]);
+        // 3-i 4-w 5-r 6-ir 7-wr
         dataPath = args[2];
+        thread_num = Integer.parseInt(args[3]);
+        cacheLine = Integer.parseInt(args[4]);
+        boolean loadParam = false, appendParam = false, queryParam = false, irParam = false;
+        if ("1".equals(args[1])) {
+            loadParam = true;
+            appendParam = true;
+            queryParam = true;
+            irParam = false;
+        } else if ("2".equals(args[1])) {
+            loadParam = false;
+            appendParam = true;
+            queryParam = true;
+            irParam = false;
+        } else if ("3".equals(args[1])) {
+            loadParam = true;
+            appendParam = false;
+            queryParam = false;
+            irParam = false;
+        } else if ("4".equals(args[1])) {
+            loadParam = false;
+            appendParam = true;
+            queryParam = false;
+            irParam = false;
+        } else if ("5".equals(args[1])) {
+            loadParam = false;
+            appendParam = false;
+            queryParam = true;
+            irParam = false;
+        } else if ("6".equals(args[1])) {
+            loadParam = false;
+            appendParam = false;
+            queryParam = false;
+            irParam = true;
+        } else if ("7".equals(args[1])) {
+            loadParam = false;
+            appendParam = true;
+            queryParam = true;
+            irParam = false;
+        }
+        
+        String className = "";
+        String ip = "";
+        String port = "";
+        String userName = "";
+        String passwd = "";
+        // Influxdb
         if ("1".equals(args[0])) {
-            if ("1".equals(args[1])) {
-                testInfluxdb(true);
-            }
-            if ("2".equals(args[1])) {
-                testInfluxdb(false);
-            }
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
+            className = "cn.edu.ruc.InfluxdbAdapter";
+            ip = "127.0.0.1";
+            port = "8086";
+            userName = "root";
+            passwd = "root";
         }
-        if ("2".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testTimescaledb(true);
-            }
-            if ("2".equals(args[1])) {
-                testTimescaledb(false);
-            }
+        // Timescaledb
+        else if ("2".equals(args[0])) {
+            className = "cn.edu.ruc.TimescaledbAdapter";
+            ip = "127.0.0.1";
+            port = "5432";
+            userName = "postgres";
+            passwd = "postgres";
         }
-        if ("3".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testIotdb(true);
-            }
-            if ("2".equals(args[1])) {
-                testIotdb(false);
-            }
+        // Iotdb
+        else if ("3".equals(args[0])) {
+            className = "cn.edu.ruc.IotdbAdapter";
+            ip = "127.0.0.1";
+            port = "6667";
+            userName = "root";
+            passwd = "root";
         }
-        if ("4".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testOpentsdb(true);
-            }
-            if ("2".equals(args[1])) {
-                testOpentsdb(false);
-            }
+        // Opentsdb
+        else if ("4".equals(args[0])) {
+            className = "cn.edu.ruc.OpentsdbAdapter";
+            ip = "127.0.0.1";
+            port = "4242";
+            userName = "root"; // not required
+            passwd = "root"; // not required
         }
-        if ("5".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testDruid(true);
-            }
-            if ("2".equals(args[1])) {
-                testDruid(false);
-            }
+        // Druid
+        else if ("5".equals(args[0])) {
+            className = "cn.edu.ruc.DruidAdapter";
+            ip = "127.0.0.1";
+            port = "";
+            userName = "root"; // not required
+            passwd = "root"; // not required
         }
-        if ("6".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testGaussDBForInfluxdb(true);
-            }
-            if ("2".equals(args[1])) {
-                testGaussDBForInfluxdb(false);
-            }
+        //暂时为空
+        else if ("6".equals(args[0])) {
+            
         }
-
-        if ("7".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testTDEngine(true);
-            }
-            if ("2".equals(args[1])) {
-                testTDEngine(false);
-            }
+        // TDengine
+        else if ("7".equals(args[0])) {
+            className = "cn.edu.ruc.TdengineAdapter2";
+            ip = "127.0.0.1";
+            port = "6030";
+            userName = "root"; // not required
+            passwd = "taosdata"; // not required
         }
-        if ("8".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testAliHiTSDB(true);
-            }
-            if ("2".equals(args[1])) {
-                testAliHiTSDB(false);
-            }
-        }
-        if ("9".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testAliLindorm(true);
-            }
-            if ("2".equals(args[1])) {
-                testAliLindorm(false);
-            }
-        }
-        if ("10".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testAliInfluxDB(true);
-            }
-            if ("2".equals(args[1])) {
-                testAliInfluxDB(false);
-            }
-        }
-        if ("11".equals(args[0])) {
-            if ("0".equals(args[1])) {
-                TSBM.generateData(dataPath);
-            }
-            if ("1".equals(args[1])) {
-                testKdbPlus(true);
-            }
-            if ("2".equals(args[1])) {
-                testKdbPlus(false);
-            }
+        if ("0".equals(args[1])) {
+            TSBM.generateData(dataPath); //生成数据
+        } else {
+            TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, thread_num, cacheLine, false,
+                loadParam, appendParam, queryParam, irParam);
         }
     }
 
-    private static void testKdbPlus(boolean loadParam) {
-
-        String className = "cn.edu.ruc.KdbPlusAdapter";
-        String ip = properties.getProperty("KdbPlus_ip");
-        String port = properties.getProperty("KdbPlus_port");
-        String userName = properties.getProperty("KdbPlus_username");
-        String passwd = properties.getProperty("KdbPlus_password");
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testIotdb(boolean loadParam) {
-//        String dataPath = dataPath;
-        String className = "cn.edu.ruc.IotdbAdapterNativeApi";
-        String ip = properties.getProperty("IoTDB_ip");
-        String port = properties.getProperty("IoTDB_port");
-        String userName = properties.getProperty("IoTDB_username");
-        String passwd = properties.getProperty("IoTDB_password");
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testInfluxdb(boolean loadParam) {
-//        String dataPath = "/Users/fasape/project/tsdb-test/";
-        String className = "cn.edu.ruc.InfluxdbAdapter";
-        String ip = properties.getProperty("Influx_ip");
-        String port = properties.getProperty("Influx_port");
-        String userName = properties.getProperty("Influx_username");
-        String passwd = properties.getProperty("Influx_password");
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testGaussDBForInfluxdb(boolean loadParam) {
-        //String dataPath = "/Users/fasape/project/tsdb-test/";
-        String istestdb = properties.getProperty("GaussdbForInflux_isTest");
-        if (!istestdb.equalsIgnoreCase("true")) {
-            return;
-        }
-        String className = "cn.edu.ruc.gaussDBForInfluxAdapter2";
-        String ip = properties.getProperty("GaussdbForInflux_ip");
-        String port = properties.getProperty("GaussdbForInflux_port");
-        String userName = properties.getProperty("GaussdbForInflux_username");
-        String passwd = properties.getProperty("GaussdbForInflux_password");
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testTimescaledb(boolean loadParam) {
-//        String dataPath = "/Users/fasape/project/tsdb-test/";
-        String className = "cn.edu.ruc.TimescaledbAdapter";
-        String ip = "127.0.0.1";
-        String port = "5432";
-        String userName = "postgres";
-        String passwd = "postgres";
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testOpentsdb(boolean loadParam) {
-        String className = "cn.edu.ruc.OpentsdbAdapter";
-        String ip = "127.0.0.1";
-        String port = "8242";
-        String userName = "root"; //not required
-        String passwd = "root"; //not required
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testDruid(boolean loadParam) {
-        String className = "cn.edu.ruc.DruidAdapter";
-        String ip = properties.getProperty("Druid_ip");
-        String port = properties.getProperty("Druid_port");
-        ;
-        String userName = properties.getProperty("Druid_username"); //not required
-        String passwd = properties.getProperty("Druid_password"); //not required
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testTDEngine(boolean loadParam) {
-        String className = "cn.edu.ruc.TdengineAdapter2";
-        String ip = properties.getProperty("TDEngine_ip");
-        String port = properties.getProperty("TDEngine_port");
-        String userName = properties.getProperty("TDEngine_username"); //not required
-        String passwd = properties.getProperty("TDEngine_password"); //not required
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testAliHiTSDB(boolean loadParam) {
-        String className = "cn.edu.ruc.AliHiTSDBAdapter";
-        String ip = properties.getProperty("AliHiTSDB_ip");
-        String port = properties.getProperty("AliHiTSDB_port");
-        String userName = properties.getProperty("AliHiTSDB_username");
-        String passwd = properties.getProperty("AliHiTSDB_password");
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testAliLindorm(boolean loadParam) {
-        String className = "cn.edu.ruc.AliLindormAdapter";
-        String ip = properties.getProperty("AliLindorm_ip");
-        String port = properties.getProperty("AliLindorm_port");
-        String userName = properties.getProperty("AliLindorm_username");
-        String passwd = properties.getProperty("AliLindorm_password");
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
-
-    public static void testAliInfluxDB(boolean loadParam) {
-        String className = "cn.edu.ruc.AliInfluxAdapter";
-        String ip = properties.getProperty("AliInflux_ip");
-        String port = properties.getProperty("AliInflux_port");
-        String userName = properties.getProperty("AliInflux_username"); //not required
-        String passwd = properties.getProperty("AliInflux_password"); //not required
-        TSBM.startPerformTest(dataPath, className, ip, port, userName, passwd, false, loadParam);
-    }
 }

@@ -1,5 +1,5 @@
 package cn.edu.ruc.adapter;
-
+import cn.edu.ruc.utils.ResultUtils;
 /**
  * modified by rainmaple
  * adapter base interface
@@ -53,4 +53,10 @@ public interface BaseAdapter {
      * @return
      */
     public long query5(long start, long end);
+    /**
+     * the method query6
+     * select count(*) from table
+     * @return
+     */
+    public ResultUtils query6();
 }

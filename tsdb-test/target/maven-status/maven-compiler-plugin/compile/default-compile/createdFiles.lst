@@ -6,4 +6,5 @@ TSDBTest.class
 cn/edu/ruc/TimescaledbUtils.class
 cn/edu/ruc/IotDBUtils.class
 cn/edu/ruc/IotdbAdapter.class
+cn/edu/ruc/TdengineAdapter2.class
 cn/edu/ruc/TimescaledbAdapter.class
